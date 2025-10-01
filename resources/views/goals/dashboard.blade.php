@@ -2,7 +2,6 @@
 @section('title', 'Set Goals')
 <body class="bg-light">
     <!-- Sidebar -->
-    <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="px-3">Menu</h4>
         <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
