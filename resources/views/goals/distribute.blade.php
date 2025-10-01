@@ -176,7 +176,8 @@ document.getElementById("distributionForm").addEventListener("submit", function(
                 title:data.message,
                 icon:'success',
                 confirmButtonText:'OK'
-            }).then(()=>{window.location.href="{{ route('goals.all') }}";});
+            }).then(() => { window.location.href = "/goals/" + data.goal_id + "/review"; });
+
         }
     });
 });

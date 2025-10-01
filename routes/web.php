@@ -27,3 +27,6 @@ Route::post('/goals/{id}/distribute/save',[GoalController::class,'saveDistributi
 // Route to view all goals
 Route::get('/goals', [GoalController::class, 'allGoals'])->name('goals.all');
 
+Route::get('/goals/{id}/review', [GoalController::class, 'review'])->name('goals.review');
+
+
