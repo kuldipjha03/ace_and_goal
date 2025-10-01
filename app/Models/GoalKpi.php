@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GoalKpi extends Model
 {
-    protected $fillable = ['goal_id','kpi_name','target'];
+    protected $fillable = ['goal_id','kpi_name','target','target_type'];
 
     public function employees()
     {

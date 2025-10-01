@@ -13,14 +13,17 @@ use App\Http\Controllers\GoalController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('/goals',[GoalController::class,'index'])->name('goals.index');
+Route::get('/',[GoalController::class,'dashboard'])->name('goals.dashboard');
+Route::get('/setgoals',[GoalController::class,'index'])->name('goals.setgoals');
 Route::post('/goals/set',[GoalController::class,'setGoal'])->name('goals.set');
 
 Route::get('/goals/{id}/distribute',[GoalController::class,'distribute'])->name('goals.distribute');
 Route::post('/goals/{id}/distribute/save',[GoalController::class,'saveDistribution'])->name('goals.distribute.save');
 
+// Route to view all goals
+Route::get('/goals', [GoalController::class, 'allGoals'])->name('goals.all');
 

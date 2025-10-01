@@ -1,100 +1,71 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>Goals Module</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        .sidebar {
-            height: 100vh;
-            width: 220px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: #343a40;
-            color: white;
-            padding-top: 20px;
-        }
-
-        .sidebar a {
-            display: block;
-            color: white;
-            padding: 12px 20px;
-            text-decoration: none;
-        }
-
-        .sidebar a:hover {
-            background: #495057;
-        }
-
-        .content {
-            margin-left: 230px;
-            padding: 20px;
-        }
-    </style>
-
-    <style>
-        .sidebar a.active {
-            background: #0d6efd;
-            /* Bootstrap primary color */
-            font-weight: bold;
-            border-left: 4px solid #ffc107;
-            /* Yellow highlight */
-        }
-    </style>
-
-
-    <script>
-        function toggleTargetInput(checkbox, kpi) {
-            let targetField = document.getElementById('target_' + kpi);
-            if (checkbox.checked) {
-                targetField.style.display = 'block';
-            } else {
-                targetField.style.display = 'none';
-                targetField.querySelector('input').value = '';
-            }
-        }
-    </script>
-</head>
-
+@extends('layouts.header')
+@section('title', 'Set Goals')
 <body class="bg-light">
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="px-3">Menu</h4>
         <a href="#">Dashboard</a>
-        <a href="{{ route('goals.index') }}"
-            class="{{ request()->routeIs('goals.index') ? 'active' : '' }}">
+        <a href="{{ route('goals.setgoals') }}" class="{{ request()->routeIs('goals.setgoals') ? 'active' : '' }}">
             ACE & Goal
         </a>
     </div>
-
-
     <!-- Main Content -->
     <div class="content">
         <div class="container">
-            <h2>Set Goals</h2>
+
             <form action="{{ route('goals.set') }}" method="POST">
                 @csrf
-                <div class="mb-3">
-                    <label>Date</label>
-                    <input type="date" name="goal_date" class="form-control" required>
+
+                <!-- Month Picker -->
+                <div class="mb-3 position-relative">
+                    <input type="hidden" name="goal_date" id="goal_date" required>
+                    <button type="button" class="btn btn-outline-primary" id="monthButton"
+                        onclick="openMonthPicker()">Select Month</button>
+
+                    <!-- Popup -->
+                    <div id="monthPicker" class="month-picker shadow position-absolute"
+                        style="display:none; top:100%; left:0; z-index:1000;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong id="yearLabel"></strong>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    onclick="changeYear(-1)">&#8592;</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    onclick="changeYear(1)">&#8594;</button>
+                                <button type="button" class="btn-close ms-2" onclick="closeMonthPicker()"></button>
+                            </div>
+                        </div>
+                        <div class="months d-grid"
+                            style="grid-template-columns: repeat(3, 1fr); gap:10px; margin:10px 0;">
+                            <div class="month" data-val="01">Jan</div>
+                            <div class="month" data-val="02">Feb</div>
+                            <div class="month" data-val="03">March</div>
+                            <div class="month" data-val="04">April</div>
+                            <div class="month" data-val="05">May</div>
+                            <div class="month" data-val="06">June</div>
+                            <div class="month" data-val="07">July</div>
+                            <div class="month" data-val="08">August</div>
+                            <div class="month" data-val="09">Sept</div>
+                            <div class="month" data-val="10">Oct</div>
+                            <div class="month" data-val="11">Nov</div>
+                            <div class="month" data-val="12">Dec</div>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="applyMonth()">Apply</button>
+                    </div>
                 </div>
 
+                <!-- Department as Dropdown Buttons -->
+                <!-- Department as Normal Dropdown -->
                 <div class="mb-3">
                     <label>Department</label>
-                    <select name="department" class="form-select" required>
-                        <option value="">--Select Department--</option>
+                    <select name="department" id="department" class="form-select" required>
+                        <option value="">Select Department</option>
                         @foreach($departments as $dept)
                         <option value="{{ $dept }}">{{ $dept }}</option>
                         @endforeach
                     </select>
                 </div>
-
+                <!-- KPIs -->
                 <div class="mb-3">
                     <label>Select KPI(s) & Set Targets</label>
                     <table class="table table-bordered">
@@ -103,115 +74,152 @@
                                 <th>Select</th>
                                 <th>KPI</th>
                                 <th>Target Type</th>
-                                <th>Current Month Target (05/25)</th>
-                                <th>Previous Month Target (04/25)</th>
-                                <th>Second Last Month Target (03/25)</th>
+                                <th>Current Month Target</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><input type="checkbox" name="kpis[]" value="Create test plans based on project requirements" onchange="toggleTargetInput(this,'t1')"></td>
-                                <td>Create test plans based on project requirements</td>
-                                <td> <select name="type[plan]" class="form-select">
+                                <td>
+                                    <input type="checkbox" onchange="toggleRow(this)">
+                                </td>
+                                <td>
+                                    <input type="hidden" name="kpis[0][name]"
+                                        value="Create test plans based on project requirements">
+                                    Create test plans based on project requirements
+                                </td>
+                                <td>
+                                    <select name="kpis[0][target_type]" class="form-select" disabled>
                                         <option value="Number">Number</option>
                                         <option value="Currency">Currency</option>
                                         <option value="Done/Not done">Done/Not done</option>
-                                    </select></td>
-                                <td><input type="text" id="t1" name="targets[plan]" class="form-control" style="display:none;"></td>
-                                <td><input type="text" value="10" class="form-control" readonly></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="kpis[0][target]" class="form-control"
+                                        placeholder="Enter target" disabled>
+                                </td>
                             </tr>
                             <tr>
-                                <td><input type="checkbox" name="kpis[]" value="Write test cases (manual or automated)" onchange="toggleTargetInput(this,'t2')"></td>
-                                <td>Write test cases (manual or automated)</td>
-                                <td> <select name="type[plan]" class="form-select">
+                                <td>
+                                    <input type="checkbox" onchange="toggleRow(this)">
+                                </td>
+                                <td>
+                                    <input type="hidden" name="kpis[1][name]" value="Write test cases (manual or automated)">
+                                    Write test cases (manual or automated)
+                                </td>
+                                <td>
+                                    <select name="kpis[1][target_type]" class="form-select" disabled>
                                         <option value="Number">Number</option>
                                         <option value="Currency">Currency</option>
                                         <option value="Done/Not done">Done/Not done</option>
-                                    </select></td>
-                                <td><input type="text" id="t2" name="targets[write_cases]" class="form-control" style="display:none;"></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="kpis[1][target]" class="form-control"
+                                        placeholder="Enter target" disabled>
+                                </td>
                             </tr>
                             <tr>
-                                <td><input type="checkbox" name="kpis[]" value="Review test cases with developers/product team" onchange="toggleTargetInput(this,'t3')"></td>
-                                <td>Review test cases with developers/product team</td>
-                                <td> <select name="type[plan]" class="form-select">
+                                <td>
+                                    <input type="checkbox" onchange="toggleRow(this)">
+                                </td>
+                                <td>
+                                    <input type="hidden" name="kpis[2][name]" value="Review test cases with developers/product team">
+                                    Review test cases with developers/product team
+                                </td>
+                                <td>
+                                    <select name="kpis[2][target_type]" class="form-select" disabled>
                                         <option value="Number">Number</option>
                                         <option value="Currency">Currency</option>
                                         <option value="Done/Not done">Done/Not done</option>
-                                    </select></td>
-                                <td><input type="text" id="t3" name="targets[review_cases]" class="form-control" style="display:none;"></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="kpis[2][target]" class="form-control"
+                                        placeholder="Enter target" disabled>
+                                </td>
                             </tr>
                             <tr>
-                                <td><input type="checkbox" name="kpis[]" value="Review test cases with developers/product team (duplicate)" onchange="toggleTargetInput(this,'t4')"></td>
-                                <td>Review test cases with developers/product team</td>
-                                <td> <select name="type[plan]" class="form-select">
+                                <td>
+                                    <input type="checkbox" onchange="toggleRow(this)">
+                                </td>
+                                <td>
+                                    <input type="hidden" name="kpis[3][name]" value="Update test scenarios for changed requirement">
+                                    Update test scenarios for changed requirement
+                                </td>
+                                <td>
+                                    <select name="kpis[3][target_type]" class="form-select" disabled>
                                         <option value="Number">Number</option>
                                         <option value="Currency">Currency</option>
                                         <option value="Done/Not done">Done/Not done</option>
-                                    </select></td>
-                                <td><input type="text" id="t4" name="targets[review_cases_dup]" class="form-control" style="display:none;"></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" name="kpis[]" value="Update test scenarios for changed requirement" onchange="toggleTargetInput(this,'t5')"></td>
-                                <td>Update test scenarios for changed requirement</td>
-                                <td> <select name="type[plan]" class="form-select">
-                                        <option value="Number">Number</option>
-                                        <option value="Currency">Currency</option>
-                                        <option value="Done/Not done">Done/Not done</option>
-                                    </select></td>
-                                <td><input type="text" id="t5" name="targets[update_scenarios]" class="form-control" style="display:none;"></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
-                                <td><input type="text" value="0" class="form-control" readonly></td>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="kpis[3][target]" class="form-control"
+                                        placeholder="Enter target" disabled>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-
-                <button type="submit" class="btn btn-success">Save & Send Goal</button>
+                <button type="submit" class="btn btn-primary">Send Goal</button>
             </form>
-
-            <script>
-                function toggleTargetInput(checkbox, targetId) {
-                    let targetField = document.getElementById(targetId);
-                    if (checkbox.checked) {
-                        targetField.style.display = 'block';
-                    } else {
-                        targetField.style.display = 'none';
-                        targetField.value = '';
-                    }
-                }
-            </script>
-
-
-            <hr>
-            <h3>All Goals</h3>
-            <table class="table table-bordered">
-                <tr>
-                    <th>Date</th>
-                    <th>Department</th>
-                    <th>KPIs</th>
-                </tr>
-                @foreach($goals as $goal)
-                <tr>
-                    <td>{{ $goal->goal_date }}</td>
-                    <td>{{ $goal->department }}</td>
-                    <td>
-                        @foreach($goal->kpis as $kpi)
-                        {{ $kpi->kpi_name }} ({{ $kpi->target }})<br>
-                        @endforeach
-                    </td>
-                </tr>
-                @endforeach
-            </table>
         </div>
     </div>
+    <script>
+        let selectedMonth = null;
+        let selectedYear = new Date().getFullYear();
+        document.getElementById("yearLabel").innerText = selectedYear;
 
+        function openMonthPicker() {
+            document.getElementById("monthPicker").style.display = "block";
+        }
+
+        function closeMonthPicker() {
+            document.getElementById("monthPicker").style.display = "none";
+        }
+
+        function changeYear(step) {
+            selectedYear += step;
+            document.getElementById("yearLabel").innerText = selectedYear;
+        }
+
+        // Month selection
+        document.querySelectorAll(".month").forEach(month => {
+            month.addEventListener("click", () => {
+                document.querySelectorAll(".month").forEach(m => m.classList.remove("active"));
+                month.classList.add("active");
+                selectedMonth = month.getAttribute("data-val");
+            });
+        });
+
+        function applyMonth() {
+            if (!selectedMonth) {
+                alert("Please select a month!");
+                return;
+            }
+            let dateValue = `${selectedYear}-${selectedMonth}-01`;
+            document.getElementById("goal_date").value = dateValue;
+            document.getElementById("monthButton").innerText =
+                `${document.querySelector(".month.active").innerText} ${selectedYear}`;
+            closeMonthPicker();
+        }
+
+        // Enable/disable KPI row inputs
+        function toggleRow(checkbox) {
+            let row = checkbox.closest("tr");
+            let selects = row.querySelectorAll("select, input[type=text]");
+            selects.forEach(el => el.disabled = !checkbox.checked);
+        }
+
+        // Select department button
+        function selectDepartment(dept, btn) {
+            document.getElementById("department").value = dept;
+            document.getElementById("deptButton").innerText = dept;
+            document.querySelectorAll(".dept-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
