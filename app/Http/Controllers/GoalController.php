@@ -37,7 +37,37 @@ class GoalController extends Controller
 }
 
 
-  public function setGoal(Request $request)
+//   public function setGoal(Request $request)
+// {
+//     $request->validate([
+//         'goal_date' => 'required|date',
+//         'department' => 'required|string',
+//         'kpis' => 'required|array|min:1'
+//     ]);
+
+//     $goal = Goal::create([
+//         'goal_date' => $request->goal_date,
+//         'department' => $request->department
+//     ]);
+
+//     foreach ($request->kpis as $kpi) {
+//         // only save if checkbox is checked
+//         if (!empty($kpi['name'])) {
+//             GoalKpi::create([
+//                 'goal_id'     => $goal->id,
+//                 'kpi_name'    => $kpi['name'],
+//                 'target'      => $kpi['target'] ?? 0,
+//                 'target_type' => $kpi['target_type'] ?? 'Number'
+//             ]);
+//         }
+//     }
+
+//     return redirect()->route('goals.distribute', $goal->id)
+//                      ->with('success', 'Targets saved successfully.');
+// }
+
+
+public function setGoal(Request $request)
 {
     $request->validate([
         'goal_date' => 'required|date',
@@ -51,8 +81,8 @@ class GoalController extends Controller
     ]);
 
     foreach ($request->kpis as $kpi) {
-        // only save if checkbox is checked
-        if (!empty($kpi['name'])) {
+        // only insert if checkbox is selected
+        if (!empty($kpi['selected'])) {
             GoalKpi::create([
                 'goal_id'     => $goal->id,
                 'kpi_name'    => $kpi['name'],
